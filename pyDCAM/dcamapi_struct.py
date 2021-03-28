@@ -45,4 +45,4 @@ class DCAMAPI_INIT(ctypes.Structure):
 class DCAMDEV_OPEN(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("index", ctypes.c_int32),
-                ("hdcam", ctypes.c_char_p)]
+                ("hdcam", ctypes.POINTER(ctypes.c_void_p))]
