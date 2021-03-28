@@ -1,4 +1,4 @@
-import  ctypes
+import ctypes
 from .dcamapi_enum import *
 from .dcamapi_struct import *
 
@@ -21,4 +21,20 @@ def dcamapi_init():
 
 def dcamapi_uninit():
     check_status(dcamapi.dcamapi_uninit())
+
+
+class HDCAM(object):
+    def __init__(self, index=0):
+        param = DCAMDEV_OPEN()
+        param.index = index
+        param.size = ctypes.sizeof(param)
+        check_status(dcamapi.dcamdev_open(ctypes.byref(param)))
+        self.hdcam = param.hdcam
+
+    def close(self):
+        check_status(dcamapi.dcamdev_close(self.hdcam))
+
+    def getcapbility(self):
+        check_status()
+
 

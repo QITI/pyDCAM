@@ -1,5 +1,6 @@
 import ctypes
 
+
 class DCAMPROP_ATTR(ctypes.Structure):
     """The dcam property attribute structure."""
 
@@ -31,6 +32,7 @@ class DCAMPROP_VALUETEXT(ctypes.Structure):
                 ("text", ctypes.c_char_p),
                 ("textbytes", ctypes.c_int32)]
 
+
 class DCAMAPI_INIT(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("iDeviceCount", ctypes.c_int32),
@@ -39,3 +41,8 @@ class DCAMAPI_INIT(ctypes.Structure):
                 ("initoption", ctypes.c_char_p),
                 ("guid", ctypes.c_char_p)]
 
+
+class DCAMDEV_OPEN(ctypes.Structure):
+    _fields_ = [("size", ctypes.c_int32),
+                ("index", ctypes.c_int32),
+                ("hdcam", ctypes.c_char_p)]
