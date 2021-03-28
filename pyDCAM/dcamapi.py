@@ -4,6 +4,8 @@ from .dcamapi_struct import *
 
 dcamapi = ctypes.windll.dcamapi
 
+DCAM_DEFAULT_ARG = 0
+
 def check_status(dcamerr):
     if not dcamerr == DCAMERR.DCAMERR_SUCCESS:
         print(dcamerr)
@@ -67,13 +69,12 @@ class HDCAM(object):
             #TODO add iProp array
         )
 
-    def dcamprop_ids(self, option):
+    def dcamprop_ids(self, option=DCAM_DEFAULT_ARG):
         iProp = ctypes.c_int32(0)
-        pProp = ctypes.byref(iProp) # TODO set initial value
 
         while True:
-            check_status(dcamapi.dcamprop_getnextid(self.hdcam, pProp, option))
-            if iProp.value == 0:
+            err = dcamapi.dcamprop_getnextid(self.hdcam, ctypes.byref(iProp), option)
+            if err == DCAMERR.DCAMERR_NOPROPERTY:
                 break
             else:
                 yield iProp.value
