@@ -30,3 +30,12 @@ class DCAMPROP_VALUETEXT(ctypes.Structure):
                 ("value", ctypes.c_double),
                 ("text", ctypes.c_char_p),
                 ("textbytes", ctypes.c_int32)]
+
+class DCAMAPI_INIT(ctypes.Structure):
+    _fields_ = [("size", ctypes.c_int32),
+                ("iDeviceCount", ctypes.c_int32),
+                ("reserved", ctypes.c_int32),
+                ("initoptionbytes", ctypes.c_int32),
+                ("initoption", ctypes.c_char_p),
+                ("guid", ctypes.c_char_p)]
+
