@@ -56,7 +56,7 @@ class HDCAM(object):
 
         check_status(dcamapi.dcamprop_getattr(param))
 
-        dict(
+        return dict(
             attribute = int(param.attribute), # TODO use enum
             iUnit = int(param.iUnit), # TODO use enum
             attribute2 =int(param.attribute2), # TODO use enum
@@ -69,6 +69,31 @@ class HDCAM(object):
             #TODO add iProp array
         )
 
+
+
+    def dcampropo_getvalue(self, iProp):
+        fValue = ctypes.c_double()
+        check_status(
+            dcamapi.dcamprop_getvalue(self.hdcam, iProp, ctypes.byref(fValue))
+        )
+        return fValue.value
+
+    def dcamprop_setvalue(self, iProp, fValue):
+        fValue = float(fValue)
+        check_status(
+            dcamapi.dcamprop_setvalue(self.hdcam, iProp, fValue)
+        )
+
+    def dcamprop_setgetvalue(self, iProp, fValue):
+        fValue = ctypes.c_double(fValue)
+        check_status(
+            dcamapi.dcamprop_setgetvalue(self.hdcam, iProp, ctypes.byref(fValue), 0)
+        )
+        return fValue.value
+
+    def dcamprop_queryvalue(self):
+        raise NotImplementedError
+
     def dcamprop_ids(self, option=DCAM_DEFAULT_ARG):
         iProp = ctypes.c_int32(0)
 
@@ -78,6 +103,20 @@ class HDCAM(object):
                 break
             else:
                 yield iProp.value
+
+    def dcamprop_getname(self, iProp):
+        textbytes = 64
+        text = ctypes.create_string_buffer(textbytes)
+
+        check_status(
+            dcamapi.dcamprop_getname(self.hdcam, iProp,ctypes.byref(text), textbytes)
+        )
+
+        return text.value.decode("ascii")
+
+    def dcamprop_getvaluetext(self):
+        raise NotImplementedError
+
 
 
 
