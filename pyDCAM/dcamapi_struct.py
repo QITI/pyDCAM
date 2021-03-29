@@ -1,5 +1,7 @@
 import ctypes
 
+c_HDCAM = ctypes.POINTER(ctypes.c_void_p)
+
 
 class DCAMPROP_ATTR(ctypes.Structure):
     """The dcam property attribute structure."""
@@ -45,7 +47,8 @@ class DCAMAPI_INIT(ctypes.Structure):
 class DCAMDEV_OPEN(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("index", ctypes.c_int32),
-                ("hdcam", ctypes.POINTER(ctypes.c_void_p))]
+                ("hdcam", c_HDCAM)]
+
 
 class DCAMDEV_CAPABILITY(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
@@ -53,18 +56,22 @@ class DCAMDEV_CAPABILITY(ctypes.Structure):
                 ("capflag", ctypes.c_int32),
                 ("kind", ctypes.c_int32)]
 
+
 class DCAMDEV_CAPABILITY_LUT(ctypes.Structure):
     _fields_ = [("hdr", DCAMDEV_CAPABILITY),
                 ("linearpointmax", ctypes.c_int32)]
+
 
 class DCAMDEV_CAPABILITY_REGION(ctypes.Structure):
     _fields_ = [("hdr", DCAMDEV_CAPABILITY),
                 ("horzunit", ctypes.c_int32),
                 ("vertunit", ctypes.c_int32)]
 
+
 class DCAMDEV_CAPABILITY_FRAMEOPTION(ctypes.Structure):
     _fields_ = [("hdr", DCAMDEV_CAPABILITY),
                 ("supportproc", ctypes.c_int32)]
+
 
 class DCAMDEV_STRING(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
@@ -72,11 +79,13 @@ class DCAMDEV_STRING(ctypes.Structure):
                 ("text", ctypes.c_char_p),
                 ("textbytes", ctypes.c_int32)]
 
+
 class DCAMDATA_HDR(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("iKind", ctypes.c_int32),
                 ("option", ctypes.c_int32),
                 ("reserved2", ctypes.c_int32)]
+
 
 class DCAMDATA_REGION(ctypes.Structure):
     _fields_ = [("hdr", DCAMDATA_HDR),
@@ -86,11 +95,13 @@ class DCAMDATA_REGION(ctypes.Structure):
                 ("datasize", ctypes.c_int32),
                 ("reserved", ctypes.c_int32)]
 
+
 class DCAMDATA_REGIONRECT(ctypes.Structure):
     _fields_ = [("left", ctypes.c_short),
                 ("top", ctypes.c_short),
                 ("right", ctypes.c_short),
                 ("bottom", ctypes.c_short)]
+
 
 class DCAMDATA_LUT(ctypes.Structure):
     _fields_ = [("hdr", DCAMDATA_HDR),
@@ -100,9 +111,11 @@ class DCAMDATA_LUT(ctypes.Structure):
                 ("datasize", ctypes.c_int32),
                 ("reserved", ctypes.c_int32)]
 
+
 class DCAMDATA_LINEARLUT(ctypes.Structure):
     _fields_ = [("lutin", ctypes.c_int32),
                 ("lutout", ctypes.c_int32)]
+
 
 class DCAMBUF_ATTACH(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
@@ -110,15 +123,18 @@ class DCAMBUF_ATTACH(ctypes.Structure):
                 ("buffer", ctypes.c_void_p),
                 ("buffercount", ctypes.c_int32)]
 
+
 class DCAM_TIMESTAMP(ctypes.Structure):
     _fields_ = [("sec", ctypes.c_uint32),
                 ("microsec", ctypes.c_int32)]
+
 
 class DCAM_TRANSFERINFO(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("iKind", ctypes.c_int32),
                 ("nNewestFrameIndex", ctypes.c_int32),
                 ("nFrameCount", ctypes.c_int32)]
+
 
 class DCAMBUF_FRAME(ctypes.Structure):
     # copyframe() and lockframe() use this structure. Some members have different direction.
@@ -128,7 +144,7 @@ class DCAMBUF_FRAME(ctypes.Structure):
                 ("iFrame", ctypes.c_int32),
                 ("buf", ctypes.c_void_p),
                 ("rowbytes", ctypes.c_int32),
-                ("type", DCAM_PIXELTYPE),
+                # TODO                ("type", DCAM_PIXELTYPE),
                 ("width", ctypes.c_int32),
                 ("height", ctypes.c_int32),
                 ("left", ctypes.c_int32),
@@ -136,6 +152,7 @@ class DCAMBUF_FRAME(ctypes.Structure):
                 ("timestamp", DCAM_TIMESTAMP),
                 ("framestamp", ctypes.c_int32),
                 ("camerastamp", ctypes.c_int32)]
+
 
 class DCAMREC_FRAME(ctypes.Structure):
     # currently same as DCAM_FRAME
@@ -145,7 +162,7 @@ class DCAMREC_FRAME(ctypes.Structure):
                 ("iFrame", ctypes.c_int32),
                 ("buf", ctypes.c_void_p),
                 ("rowbytes", ctypes.c_int32),
-                ("type", DCAM_PIXELTYPE),
+                # TODO                ("type", DCAM_PIXELTYPE),
                 ("width", ctypes.c_int32),
                 ("height", ctypes.c_int32),
                 ("left", ctypes.c_int32),
@@ -154,11 +171,14 @@ class DCAMREC_FRAME(ctypes.Structure):
                 ("framestamp", ctypes.c_int32),
                 ("camerastamp", ctypes.c_int32)]
 
+
 class DCAMWAIT_OPEN(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("supportevent", ctypes.c_int32),
-                ("hwait", HDCAMWAIT),
-                ("hdcam", HDCAM)]
+                # TODO("hwait", HDCAMWAIT),
+                ("hdcam", c_HDCAM)
+                ]
+
 
 class DCAMWAIT_START(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
@@ -166,10 +186,11 @@ class DCAMWAIT_START(ctypes.Structure):
                 ("eventmask", ctypes.c_int32),
                 ("timeout", ctypes.c_int32)]
 
+
 class DCAMREC_OPENA(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
-                ("hrec", HDCAMREC),
+                # ("hrec", HDCAMREC),
                 ("path", ctypes.c_char_p),
                 ("ext", ctypes.c_char_p),
                 ("maxframepersession", ctypes.c_int32),
@@ -180,10 +201,11 @@ class DCAMREC_OPENA(ctypes.Structure):
                 ("usertextsize_session", ctypes.c_int32),
                 ("usertextsize_file", ctypes.c_int32)]
 
+
 class DCAMREC_OPENW(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
-                ("hrec", HDCAMREC),
+                # TODO("hrec", HDCAMREC),
                 ("path", ctypes.c_wchar_p),
                 ("ext", ctypes.c_wchar_p),
                 ("maxframepersession", ctypes.c_int32),
@@ -194,10 +216,11 @@ class DCAMREC_OPENW(ctypes.Structure):
                 ("usertextsize_session", ctypes.c_int32),
                 ("usertextsize_file", ctypes.c_int32)]
 
+
 class DCAMREC_OPEN(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
-                ("hrec", HDCAMREC),
+                # TODO("hrec", HDCAMREC),
                 ("path", ctypes.c_char_p),
                 ("ext", ctypes.c_char_p),
                 ("maxframepersession", ctypes.c_int32),
@@ -207,6 +230,7 @@ class DCAMREC_OPEN(ctypes.Structure):
                 ("usertextsize", ctypes.c_int32),
                 ("usertextsize_session", ctypes.c_int32),
                 ("usertextsize_file", ctypes.c_int32)]
+
 
 class DCAMREC_STATUS(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
@@ -218,11 +242,13 @@ class DCAMREC_STATUS(ctypes.Structure):
                 ("totalframecount", ctypes.c_int32),
                 ("reserved", ctypes.c_int32)]
 
+
 class DCAM_METADATAHDR(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("iKind", ctypes.c_int32),
                 ("option", ctypes.c_int32),
                 ("iFrame", ctypes.c_int32)]
+
 
 class DCAM_METADATABLOCKHDR(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
@@ -232,17 +258,20 @@ class DCAM_METADATABLOCKHDR(ctypes.Structure):
                 ("in_count", ctypes.c_int32),
                 ("outcount", ctypes.c_int32)]
 
+
 class DCAM_USERDATATEXT(ctypes.Structure):
     _fields_ = [("hdr", DCAM_METADATAHDR),
                 ("text", ctypes.c_char_p),
                 ("text_len", ctypes.c_int32),
                 ("codepage", ctypes.c_int32)]
 
+
 class DCAM_USERDATABIN(ctypes.Structure):
     _fields_ = [("hdr", DCAM_METADATAHDR),
                 ("bin", ctypes.c_void_p),
                 ("bin_len", ctypes.c_int32),
                 ("reserved", ctypes.c_int32)]
+
 
 class DCAM_TIMESTAMPBLOCK(ctypes.Structure):
     _fields_ = [("hdr", DCAM_METADATABLOCKHDR),
@@ -252,10 +281,12 @@ class DCAM_TIMESTAMPBLOCK(ctypes.Structure):
                 ("timestampkind", ctypes.c_int32),
                 ("reserved", ctypes.c_int32)]
 
+
 class DCAM_FRAMESTAMPBLOCK(ctypes.Structure):
     _fields_ = [("hdr", DCAM_METADATABLOCKHDR),
                 ("framestamps", ctypes.c_int32),
                 ("reserved", ctypes.c_int32)]
+
 
 class DCAM_METADATATEXTBLOCK(ctypes.Structure):
     _fields_ = [("hdr", DCAM_METADATABLOCKHDR),
@@ -264,6 +295,7 @@ class DCAM_METADATATEXTBLOCK(ctypes.Structure):
                 ("bytesperunit", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
                 ("textcodepage", ctypes.c_int32)]
+
 
 class DCAM_METADATABINBLOCK(ctypes.Structure):
     _fields_ = [("hdr", DCAM_METADATABLOCKHDR),
