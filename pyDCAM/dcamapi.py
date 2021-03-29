@@ -6,11 +6,14 @@ dcamapi = ctypes.windll.dcamapi
 
 DCAM_DEFAULT_ARG = 0
 
+def failed(dcamerr):
+    return True if dcamerr < 0 else False
+
 def check_status(dcamerr):
     if not dcamerr == DCAMERR.DCAMERR_SUCCESS:
         print(dcamerr)
         message = "[{0}]".format(DCAMERR(dcamerr).name)
-        raise Exception(message)
+        raise Exception(message) # TODO custom exception
 
 
 def dcamapi_init():
@@ -49,26 +52,30 @@ class HDCAM(object):
     def dcamprop_getattr(self, iProp):
         param = DCAMPROP_ATTR()
         param.cbSize = ctypes.sizeof(param)
-        param.Iprop = iProp
-        param.option = 0  # reserved
-        param.iReserved1 = 0  # reserved
-        param.iGroup = 0  # reserved
+        param.iProp = iProp
+        #param.option = 0  # reserved
+        #param.iReserved1 = 0  # reserved
+        #param.iGroup = 0  # reserved
+        #param.iReserved3 = 0  # reserved
 
-        check_status(dcamapi.dcamprop_getattr(param))
+        # TODO the return value is weird...
+        err = dcamapi.dcamprop_getattr(self.hdcam, ctypes.byref(param))
+        if failed(err):
+            raise Exception # TODO custom exception
+
 
         return dict(
             attribute = int(param.attribute), # TODO use enum
             iUnit = int(param.iUnit), # TODO use enum
             attribute2 =int(param.attribute2), # TODO use enum
-            valuemin = param.valuemin.value,
-            valuemax=param.valuemax.value,
-            valuestep=param.valuestep.value,
-            valuedefault=param.valuedefault.value,
-            nMaxChannel=param.nMaxChannel.value,
-            nMaxView=param.nMaxView.value,
+            valuemin = param.valuemin,
+            valuemax=param.valuemax,
+            valuestep=param.valuestep,
+            valuedefault=param.valuedefault,
+            nMaxChannel=param.nMaxChannel,
+            nMaxView=param.nMaxView,
             #TODO add iProp array
         )
-
 
 
     def dcampropo_getvalue(self, iProp):
