@@ -120,7 +120,7 @@ class DCAMDATA_LINEARLUT(ctypes.Structure):
 class DCAMBUF_ATTACH(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("iKind", ctypes.c_int32),
-                ("buffer", ctypes.c_void_p),
+                ("buffer", ctypes.POINTER(ctypes.c_void_p)),
                 ("buffercount", ctypes.c_int32)]
 
 
@@ -144,7 +144,7 @@ class DCAMBUF_FRAME(ctypes.Structure):
                 ("iFrame", ctypes.c_int32),
                 ("buf", ctypes.c_void_p),
                 ("rowbytes", ctypes.c_int32),
-                # TODO                ("type", DCAM_PIXELTYPE),
+                ("type", ctypes.c_int32),
                 ("width", ctypes.c_int32),
                 ("height", ctypes.c_int32),
                 ("left", ctypes.c_int32),

@@ -116,13 +116,62 @@ class HDCAM(object):
         text = ctypes.create_string_buffer(textbytes)
 
         check_status(
-            dcamapi.dcamprop_getname(self.hdcam, iProp,ctypes.byref(text), textbytes)
+            dcamapi.dcamprop_getname(self.hdcam, iProp, ctypes.byref(text), textbytes)
         )
 
         return text.value.decode("ascii")
 
     def dcamprop_getvaluetext(self):
         raise NotImplementedError
+
+    def dcambuf_alloc(self, framecount=64):
+        check_status(
+            dcamapi.dcambuf_alloc(self.hdcam, framecount)
+        )
+
+    def dcambuf_attach(self):
+        param = DCAMBUF_ATTACH()
+        param.size = ctypes.sizeof(param)
+        raise NotImplementedError
+
+    def dcambuf_release(self, iKind):
+        check_status(
+            dcamapi.dcambuf_release(iKind)
+        )
+
+    def dcambuf_lockframe(self, iFrame=-1):
+        frame = DCAMBUF_FRAME()
+        frame.size = ctypes.sizeof(frame)
+        frame.iFrame = iFrame # This can be set to -1 to retrieve the latest captured image.
+        check_status(
+            dcamapi.dcambuf_lockframe(self.hdcam, ctypes.byref(frame))
+        )
+        return frame
+
+    def dcambuf_copyframe(self):
+        raise NotImplementedError
+
+    def dcambuf_copymetadata(self):
+        raise NotImplementedError
+
+    def dcamcap_start(self, mode=DCAMCAP_START.DCAMCAP_START_SEQUENCE):
+        check_status(
+            dcamapi.dcamcap_start(self.hdcam, mode)
+        )
+
+    def dcamcap_stop(self):
+        check_status(
+            dcamapi.dcamcap_stop(self.hdcam)
+        )
+        
+    def dcamcap_status(self):
+        iStatus = ctypes.c_int32(0)
+        check_status(
+            dcamapi.dcamcap_status(self.hdcam, ctypes.byref(iStatus))
+        )
+        return DCAMCAP_STATUS(iStatus)
+
+
 
 
 
