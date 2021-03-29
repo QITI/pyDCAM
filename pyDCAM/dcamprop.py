@@ -464,7 +464,7 @@ class DCAMPROPATTRIBUTE(IntEnum):
 	DCAMPROP_ATTR_HASCHANNEL = _int32(0x08000000)	# value can set the value for each channels */
 
 	# property attribute */
-	DCAMPROP_ATTR_AUTOROUNDING = _int32(0x00800000)	\
+	DCAMPROP_ATTR_AUTOROUNDING = _int32(0x00800000)	#
 		# The dcam_setproperty() or dcam_setgetproperty() will failure if this bit exists. */
 		# If this flag does not exist, the value will be round up when it is not supported. */
 	DCAMPROP_ATTR_STEPPING_INCONSISTENT = _int32(0x00400000)
@@ -477,7 +477,7 @@ class DCAMPROPATTRIBUTE(IntEnum):
 	DCAMPROP_ATTR_VOLATILE = _int32(0x00080000)	# value may be changed by user or automatically */
 
 	DCAMPROP_ATTR_WRITABLE = _int32(0x00020000)	# value can be set when state is manual	*/
-	DCAMPROP_ATTR_READABLE = 0x00010000,	#* value is readable when state is manual	*/
+	DCAMPROP_ATTR_READABLE = _int32(0x00010000)	#* value is readable when state is manual	*/
 
 	DCAMPROP_ATTR_HASVIEW = _int32(0x00008000)	# value can set the value for each views	*/
 	DCAMPROP_ATTR__SYSTEM = _int32(0x00004000)	# system id								*/	/* reserved */
@@ -514,13 +514,13 @@ class DCAMPROPATTRIBUTE2(IntEnum):
 
 class DCAMPROPUNIT(IntEnum):
 
-	DCAMPROP_UNIT_SECOND = 1,			# sec */
-	DCAMPROP_UNIT_CELSIUS = 2,			# for sensor temperature */
-	DCAMPROP_UNIT_KELVIN = 3,			# for color temperature */
-	DCAMPROP_UNIT_METERPERSECOND = 4,			# for LINESPEED */
-	DCAMPROP_UNIT_PERSECOND = 5,			# for FRAMERATE and LINERATE */
-	DCAMPROP_UNIT_DEGREE = 6,			# for OUTPUT ROTATION */
-	DCAMPROP_UNIT_MICROMETER = 7,			# for length */
+	DCAMPROP_UNIT_SECOND = 1			# sec */
+	DCAMPROP_UNIT_CELSIUS = 2			# for sensor temperature */
+	DCAMPROP_UNIT_KELVIN = 3			# for color temperature */
+	DCAMPROP_UNIT_METERPERSECOND = 4			# for LINESPEED */
+	DCAMPROP_UNIT_PERSECOND = 5			# for FRAMERATE and LINERATE */
+	DCAMPROP_UNIT_DEGREE = 6			# for OUTPUT ROTATION */
+	DCAMPROP_UNIT_MICROMETER = 7			# for length */
 
 	DCAMPROP_UNIT_NONE = 0				# no unit */
 
