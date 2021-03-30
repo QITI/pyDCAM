@@ -17,8 +17,13 @@ def check_status(dcamerr):
 
 
 def dcamapi_init():
+    #option = (ctypes.c_int32 * 2)()
+    #option[0] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_APIVER__LATEST
+    #option[1] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_ENDMARK
     param = DCAMAPI_INIT()
     param.size = ctypes.sizeof(param)
+    #param.initoption = ctypes.cast(ctypes.pointer(option), ctypes.c_char_p)
+    #param.initoptionbytes = ctypes.sizeof(option)
     param.initoption = None
     param.guid = None
     check_status(dcamapi.dcamapi_init(ctypes.byref(param)))
@@ -86,7 +91,7 @@ class HDCAM(object):
         return fValue.value
 
     def dcamprop_setvalue(self, iProp, fValue):
-        fValue = float(fValue)
+        fValue = ctypes.c_double(fValue)
         check_status(
             dcamapi.dcamprop_setvalue(self.hdcam, iProp, fValue)
         )
@@ -148,8 +153,11 @@ class HDCAM(object):
         )
         return frame
 
-    def dcambuf_copyframe(self):
-        raise NotImplementedError
+    def dcambuf_copyframe(self, iFrame=-1):
+        frame = DCAMBUF_FRAME()
+        frame.size = ctypes.sizeof(frame)
+        frame.iFrame = iFrame  # This can be set to -1 to retrieve the latest captured image.
+
 
     def dcambuf_copymetadata(self):
         raise NotImplementedError
@@ -163,7 +171,7 @@ class HDCAM(object):
         check_status(
             dcamapi.dcamcap_stop(self.hdcam)
         )
-        
+
     def dcamcap_status(self):
         iStatus = ctypes.c_int32(0)
         check_status(
@@ -171,6 +179,44 @@ class HDCAM(object):
         )
         return DCAMCAP_STATUS(iStatus)
 
+    def dcamcap_transferinfo(self):
+        param = DCAMCAP_TRANSFERINFO()
+        param.size = ctypes.sizeof(param)
+        check_status(
+            dcamapi.dcamcap_transferinfo(self.hdcam, ctypes.byref(param))
+        )
+        return param.nNewestFrameIndex, param.nFrameCount
+
+    def dcamwait_open(self):
+        param = DCAMWAIT_OPEN()
+        param.size = ctypes.sizeof(param)
+        param.hdcam = self.hdcam
+        check_status(
+            dcamapi.dcamwait_open(ctypes.byref(param))
+        )
+        return HDCAMWAIT(param.hwait, param.supportevent)
+
+
+class HDCAMWAIT(object):
+    def __init__(self, hwait, supportevent):
+        self.h = hwait
+        self.supportevent = supportevent
+
+    def dcamwait_close(self):
+        check_status(
+            dcamapi.dcamwait_close(self.h)
+        )
+
+    def dcamwait_start(self, eventmask=DCAMWAIT_EVENT.DCAMWAIT_CAPEVENT_FRAMEREADY,
+                       timeout=DCAMWAIT_TIMEOUT.DCAMWAIT_TIMEOUT_INFINITE):
+        param = DCAMWAIT_START()
+        param.size = ctypes.sizeof(param)
+        param.eventmask = eventmask
+        param.timeout = timeout
+        check_status(
+            dcamapi.dcamwait_start(self.h, ctypes.byref(param))
+        )
+        return param.eventhappened
 
 
 

@@ -1,7 +1,7 @@
 import ctypes
 
 c_HDCAM = ctypes.POINTER(ctypes.c_void_p)
-
+c_HDCAMWAIT = ctypes.POINTER(ctypes.c_void_p)
 
 class DCAMPROP_ATTR(ctypes.Structure):
     """The dcam property attribute structure."""
@@ -129,7 +129,7 @@ class DCAM_TIMESTAMP(ctypes.Structure):
                 ("microsec", ctypes.c_int32)]
 
 
-class DCAM_TRANSFERINFO(ctypes.Structure):
+class DCAMCAP_TRANSFERINFO(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("iKind", ctypes.c_int32),
                 ("nNewestFrameIndex", ctypes.c_int32),
@@ -175,7 +175,7 @@ class DCAMREC_FRAME(ctypes.Structure):
 class DCAMWAIT_OPEN(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("supportevent", ctypes.c_int32),
-                # TODO("hwait", HDCAMWAIT),
+                ("hwait", c_HDCAMWAIT),
                 ("hdcam", c_HDCAM)
                 ]
 
