@@ -18,24 +18,26 @@ _pixel_type_to_numpy = {
     DCAM_PIXELTYPE.DCAM_PIXELTYPE_MONO8: np.uint8
 }
 
+
 def failed(dcamerr):
     return True if dcamerr < 0 else False
+
 
 def check_status(dcamerr):
     if not dcamerr == DCAMERR.DCAMERR_SUCCESS:
         print(dcamerr)
         message = "[{0}]".format(DCAMERR(dcamerr).name)
-        raise Exception(message) # TODO custom exception
+        raise Exception(message)  # TODO custom exception
 
 
 def dcamapi_init():
-    #option = (ctypes.c_int32 * 2)()
-    #option[0] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_APIVER__LATEST
-    #option[1] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_ENDMARK
+    # option = (ctypes.c_int32 * 2)()
+    # option[0] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_APIVER__LATEST
+    # option[1] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_ENDMARK
     param = DCAMAPI_INIT()
     param.size = ctypes.sizeof(param)
-    #param.initoption = ctypes.cast(ctypes.pointer(option), ctypes.c_char_p)
-    #param.initoptionbytes = ctypes.sizeof(option)
+    # param.initoption = ctypes.cast(ctypes.pointer(option), ctypes.c_char_p)
+    # param.initoptionbytes = ctypes.sizeof(option)
     param.initoption = None
     param.guid = None
     check_status(dcamapi.dcamapi_init(ctypes.byref(param)))
@@ -65,35 +67,32 @@ class HDCAM(object):
     def dcamdev_getstring(self):
         raise NotImplementedError
 
-
     def dcamprop_getattr(self, iProp):
         param = DCAMPROP_ATTR()
         param.cbSize = ctypes.sizeof(param)
         param.iProp = iProp
-        #param.option = 0  # reserved
-        #param.iReserved1 = 0  # reserved
-        #param.iGroup = 0  # reserved
-        #param.iReserved3 = 0  # reserved
+        # param.option = 0  # reserved
+        # param.iReserved1 = 0  # reserved
+        # param.iGroup = 0  # reserved
+        # param.iReserved3 = 0  # reserved
 
         # TODO the return value is weird...
         err = dcamapi.dcamprop_getattr(self.hdcam, ctypes.byref(param))
         if failed(err):
-            raise Exception # TODO custom exception
-
+            raise Exception  # TODO custom exception
 
         return dict(
-            attribute = int(param.attribute), # TODO use enum
-            iUnit = int(param.iUnit), # TODO use enum
-            attribute2 =int(param.attribute2), # TODO use enum
-            valuemin = param.valuemin,
+            attribute=int(param.attribute),  # TODO use enum
+            iUnit=int(param.iUnit),  # TODO use enum
+            attribute2=int(param.attribute2),  # TODO use enum
+            valuemin=param.valuemin,
             valuemax=param.valuemax,
             valuestep=param.valuestep,
             valuedefault=param.valuedefault,
             nMaxChannel=param.nMaxChannel,
             nMaxView=param.nMaxView,
-            #TODO add iProp array
+            # TODO add iProp array
         )
-
 
     def dcamprop_getvalue(self, iProp):
         fValue = ctypes.c_double()
@@ -156,7 +155,7 @@ class HDCAM(object):
             dcamapi.dcambuf_release(iKind)
         )
 
-    #TODO Add options to return timestamp and framestamp.
+    # TODO Add options to return timestamp and framestamp.
 
     def dcambuf_lockframe(self, iFrame=-1):
         frame = DCAMBUF_FRAME()
@@ -167,7 +166,7 @@ class HDCAM(object):
         )
 
         img = np.ctypeslib.as_array(ctypes.cast(frame.buf, ctypes.POINTER(_pixel_type_to_ctypes[frame.type])),
-                              shape=(frame.height, frame.width))
+                                    shape=(frame.height, frame.width))
 
         return img
 
@@ -194,7 +193,6 @@ class HDCAM(object):
         )
 
         return img
-
 
     def dcambuf_copymetadata(self):
         raise NotImplementedError
@@ -249,7 +247,6 @@ class HDCAM(object):
         self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME, value)
 
 
-
 class HDCAMWAIT(object):
     def __init__(self, hwait, supportevent):
         self.h = hwait
@@ -275,12 +272,3 @@ class HDCAMWAIT(object):
         check_status(
             dcamapi.dcamwait_abort(self.h)
         )
-
-
-
-
-
-
-
-
-
