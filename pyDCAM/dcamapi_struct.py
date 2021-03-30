@@ -2,6 +2,7 @@ import ctypes
 
 c_HDCAM = ctypes.POINTER(ctypes.c_void_p)
 c_HDCAMWAIT = ctypes.POINTER(ctypes.c_void_p)
+c_HDCAMREC = ctypes.POINTER(ctypes.c_void_p)
 
 class DCAMPROP_ATTR(ctypes.Structure):
     """The dcam property attribute structure."""
@@ -162,7 +163,7 @@ class DCAMREC_FRAME(ctypes.Structure):
                 ("iFrame", ctypes.c_int32),
                 ("buf", ctypes.c_void_p),
                 ("rowbytes", ctypes.c_int32),
-                # TODO                ("type", DCAM_PIXELTYPE),
+                ("type", ctypes.c_int32),
                 ("width", ctypes.c_int32),
                 ("height", ctypes.c_int32),
                 ("left", ctypes.c_int32),
@@ -190,7 +191,7 @@ class DCAMWAIT_START(ctypes.Structure):
 class DCAMREC_OPENA(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
-                # ("hrec", HDCAMREC),
+                ("hrec", c_HDCAMREC),
                 ("path", ctypes.c_char_p),
                 ("ext", ctypes.c_char_p),
                 ("maxframepersession", ctypes.c_int32),
@@ -205,7 +206,7 @@ class DCAMREC_OPENA(ctypes.Structure):
 class DCAMREC_OPENW(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
-                # TODO("hrec", HDCAMREC),
+                ("hrec", c_HDCAMREC),
                 ("path", ctypes.c_wchar_p),
                 ("ext", ctypes.c_wchar_p),
                 ("maxframepersession", ctypes.c_int32),
@@ -220,7 +221,7 @@ class DCAMREC_OPENW(ctypes.Structure):
 class DCAMREC_OPEN(ctypes.Structure):
     _fields_ = [("size", ctypes.c_int32),
                 ("reserved", ctypes.c_int32),
-                # TODO("hrec", HDCAMREC),
+                ("hrec", c_HDCAMREC),
                 ("path", ctypes.c_char_p),
                 ("ext", ctypes.c_char_p),
                 ("maxframepersession", ctypes.c_int32),
