@@ -31,6 +31,7 @@ def check_status(dcamerr):
 
 
 def dcamapi_init():
+    # TODO Add init options
     # option = (ctypes.c_int32 * 2)()
     # option[0] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_APIVER__LATEST
     # option[1] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_ENDMARK
@@ -57,6 +58,12 @@ class HDCAM(object):
         check_status(dcamapi.dcamdev_open(ctypes.byref(param)))
 
         self.hdcam = param.hdcam
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.dcamdev_close()
 
     def dcamdev_close(self):
         check_status(dcamapi.dcamdev_close(self.hdcam))
