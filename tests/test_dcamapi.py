@@ -12,20 +12,15 @@ def test_dcamdev_open_close(camindex):
     hdcam = pyDCAM.HDCAM(camindex)
     hdcam.dcamdev_close()
 
-def test_dcamprop(camindex):
-    pyDCAM.dcamapi_init()
-    hdcam = pyDCAM.HDCAM(camindex)
+def test_dcamprop(hdcam):
     for iProp in hdcam.dcamprop_ids():
         attr = hdcam.dcamprop_getattr(iProp)
         name = hdcam.dcamprop_getname(iProp)
         value = hdcam.dcampropo_getvalue(iProp)
         print(name, ":", value)
-    hdcam.dcamdev_close()
 
 
-def test_capture_single_image(camindex):
-    pyDCAM.dcamapi_init()
-    hdcam = pyDCAM.HDCAM(camindex)
+def test_capture_single_image(hdcam):
     width = int(hdcam.dcampropo_getvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_IMAGE_WIDTH))
     height = int(hdcam.dcampropo_getvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_IMAGE_HEIGHT))
     hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_READOUTSPEED, pyDCAM.DCAMPROPMODEVALUE.DCAMPROP_READOUTSPEED__SLOWEST)
@@ -37,5 +32,5 @@ def test_capture_single_image(camindex):
     hwait.dcamwait_start()
     frame = hdcam.dcambuf_lockframe()
     ctypes.memmove(array.ctypes.data, frame.buf, width * height * 2)
-    hdcam.dcamcap_stop()
+
 

@@ -1,6 +1,7 @@
 import ctypes
 from .dcamapi_enum import *
 from .dcamapi_struct import *
+from .dcamprop import *
 
 dcamapi = ctypes.windll.dcamapi
 
@@ -83,7 +84,7 @@ class HDCAM(object):
         )
 
 
-    def dcampropo_getvalue(self, iProp):
+    def dcamprop_getvalue(self, iProp):
         fValue = ctypes.c_double()
         check_status(
             dcamapi.dcamprop_getvalue(self.hdcam, iProp, ctypes.byref(fValue))
@@ -147,7 +148,7 @@ class HDCAM(object):
     def dcambuf_lockframe(self, iFrame=-1):
         frame = DCAMBUF_FRAME()
         frame.size = ctypes.sizeof(frame)
-        frame.iFrame = iFrame # This can be set to -1 to retrieve the latest captured image.
+        frame.iFrame = iFrame  # This can be set to -1 to retrieve the latest captured image.
         check_status(
             dcamapi.dcambuf_lockframe(self.hdcam, ctypes.byref(frame))
         )
@@ -157,6 +158,7 @@ class HDCAM(object):
         frame = DCAMBUF_FRAME()
         frame.size = ctypes.sizeof(frame)
         frame.iFrame = iFrame  # This can be set to -1 to retrieve the latest captured image.
+        raise NotImplementedError
 
 
     def dcambuf_copymetadata(self):
@@ -187,6 +189,11 @@ class HDCAM(object):
         )
         return param.nNewestFrameIndex, param.nFrameCount
 
+    def dcamcap_firetrigger(self):
+        check_status(
+            dcamapi.dcamcap_firetrigger(self.hdcam, ctypes.c_int32(0))
+        )
+
     def dcamwait_open(self):
         param = DCAMWAIT_OPEN()
         param.size = ctypes.sizeof(param)
@@ -195,6 +202,17 @@ class HDCAM(object):
             dcamapi.dcamwait_open(ctypes.byref(param))
         )
         return HDCAMWAIT(param.hwait, param.supportevent)
+
+    # ===== quick API =====
+    
+    @property
+    def exposure_time(self):
+        return self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME)
+
+    @exposure_time.setter
+    def exposure_time(self, value):
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME, value)
+
 
 
 class HDCAMWAIT(object):
@@ -218,6 +236,10 @@ class HDCAMWAIT(object):
         )
         return param.eventhappened
 
+    def dcamwait_abort(self):
+        check_status(
+            dcamapi.dcamwait_abort(self.h)
+        )
 
 
 
