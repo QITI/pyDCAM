@@ -1,4 +1,5 @@
 import ctypes
+import numpy as np
 from .dcamapi_enum import *
 from .dcamapi_struct import *
 from .dcamprop import *
@@ -6,6 +7,16 @@ from .dcamprop import *
 dcamapi = ctypes.windll.dcamapi
 
 DCAM_DEFAULT_ARG = 0
+
+_pixel_type_to_ctypes = {
+    DCAM_PIXELTYPE.DCAM_PIXELTYPE_MONO16: ctypes.c_uint16,
+    DCAM_PIXELTYPE.DCAM_PIXELTYPE_MONO8: ctypes.c_uint8
+}
+
+_pixel_type_to_numpy = {
+    DCAM_PIXELTYPE.DCAM_PIXELTYPE_MONO16: np.uint16,
+    DCAM_PIXELTYPE.DCAM_PIXELTYPE_MONO8: np.uint8
+}
 
 def failed(dcamerr):
     return True if dcamerr < 0 else False
@@ -145,6 +156,8 @@ class HDCAM(object):
             dcamapi.dcambuf_release(iKind)
         )
 
+    #TODO Add options to return timestamp and framestamp.
+
     def dcambuf_lockframe(self, iFrame=-1):
         frame = DCAMBUF_FRAME()
         frame.size = ctypes.sizeof(frame)
@@ -152,13 +165,35 @@ class HDCAM(object):
         check_status(
             dcamapi.dcambuf_lockframe(self.hdcam, ctypes.byref(frame))
         )
-        return frame
+
+        img = np.ctypeslib.as_array(ctypes.cast(frame.buf, ctypes.POINTER(_pixel_type_to_ctypes[frame.type])),
+                              shape=(frame.height, frame.width))
+
+        return img
 
     def dcambuf_copyframe(self, iFrame=-1):
         frame = DCAMBUF_FRAME()
         frame.size = ctypes.sizeof(frame)
         frame.iFrame = iFrame  # This can be set to -1 to retrieve the latest captured image.
-        raise NotImplementedError
+
+        # TODO Support offset
+        # TODO Not sure if this should be image rowbytes of buffer rowbytes
+        frame.rowbytes = int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_IMAGE_ROWBYTES))
+        frame.width = int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_IMAGE_WIDTH))
+        frame.height = int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_IMAGE_HEIGHT))
+        frame.left = 0
+        frame.top = 0
+
+        pixel_type = int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_IMAGE_PIXELTYPE))
+
+        img = np.empty(shape=(frame.height, frame.width), dtype=_pixel_type_to_numpy[pixel_type])
+        frame.buf = img.ctypes.data
+
+        check_status(
+            dcamapi.dcambuf_copyframe(self.hdcam, ctypes.byref(frame))
+        )
+
+        return img
 
 
     def dcambuf_copymetadata(self):
@@ -204,7 +239,7 @@ class HDCAM(object):
         return HDCAMWAIT(param.hwait, param.supportevent)
 
     # ===== quick API =====
-    
+
     @property
     def exposure_time(self):
         return self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME)
