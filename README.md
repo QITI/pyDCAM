@@ -13,7 +13,7 @@ python setup.py develop
 ```
 
 ## Test
-Run the tests in the test folder:
+Run the tests in the tests folder:
 ```
-pytest -v test/
+pytest -v tests/
 ```
