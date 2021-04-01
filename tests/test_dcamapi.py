@@ -14,6 +14,18 @@ def test_dcamdev_open_close(camindex):
     pyDCAM.dcamapi_init()
     hdcam = pyDCAM.HDCAM(camindex)
     hdcam.dcamdev_close()
+    pyDCAM.dcamapi_uninit()
+
+
+def test_dcamdev_string(hdcam):
+    # The Vendor is always Hmamatsu.
+    assert hdcam.dcamdev_getstring(pyDCAM.DCAM_IDSTR.DCAM_IDSTR_VENDOR) == "Hamamatsu"
+    # This package is designed for DCAM-API version 4.
+    assert hdcam.dcamdev_getstring(pyDCAM.DCAM_IDSTR.DCAM_IDSTR_DCAMAPIVERSION) == '4.00'
+
+    # Test quick API for accessing the camera_id and model.
+    print(hdcam.camera_id)
+    print(hdcam.model)
 
 
 def test_dcamprop(hdcam):
@@ -85,7 +97,7 @@ def test_capture_with_software_trigger(hdcam):
     hdcam.dcambuf_alloc(10)
     hdcam.dcamcap_start()
 
-    TIMEOUT = 100  # 100ms. This should give enough time for the image to be transfered
+    TIMEOUT = 100  # 100ms. This should give the camera enough time to transfer the image
 
     hwait = hdcam.dcamwait_open()
 

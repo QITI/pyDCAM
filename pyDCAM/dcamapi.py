@@ -71,10 +71,23 @@ class HDCAM(object):
     def dcamdev_getcapbility(self):
         raise NotImplementedError
 
-    def dcamdev_getstring(self):
-        raise NotImplementedError
+    def dcamdev_getstring(self, iString: DCAM_IDSTR) -> str:
+        param = DCAMDEV_STRING()
+        param.size = ctypes.sizeof(param)
+        param.iString = iString
 
-    def dcamprop_getattr(self, iProp):
+        TEXT_BYTES = 100
+        text = ctypes.create_string_buffer(TEXT_BYTES)
+        param.text = ctypes.cast(text, ctypes.c_char_p)
+        param.textbytes = TEXT_BYTES
+
+        check_status(
+            dcamapi.dcamdev_getstring(self.hdcam, ctypes.byref(param))
+        )
+
+        return text.value.decode("ascii")
+
+    def dcamprop_getattr(self, iProp: DCAMPROPMODEVALUE):
         param = DCAMPROP_ATTR()
         param.cbSize = ctypes.sizeof(param)
         param.iProp = iProp
@@ -101,20 +114,20 @@ class HDCAM(object):
             # TODO add iProp array
         )
 
-    def dcamprop_getvalue(self, iProp):
+    def dcamprop_getvalue(self, iProp: DCAMIDPROP) -> float:
         fValue = ctypes.c_double()
         check_status(
             dcamapi.dcamprop_getvalue(self.hdcam, iProp, ctypes.byref(fValue))
         )
         return fValue.value
 
-    def dcamprop_setvalue(self, iProp, fValue):
+    def dcamprop_setvalue(self, iProp: DCAMIDPROP, fValue):
         fValue = ctypes.c_double(fValue)
         check_status(
             dcamapi.dcamprop_setvalue(self.hdcam, iProp, fValue)
         )
 
-    def dcamprop_setgetvalue(self, iProp, fValue):
+    def dcamprop_setgetvalue(self, iProp: DCAMIDPROP, fValue: float) -> float:
         fValue = ctypes.c_double(fValue)
         check_status(
             dcamapi.dcamprop_setgetvalue(self.hdcam, iProp, ctypes.byref(fValue), 0)
@@ -134,7 +147,7 @@ class HDCAM(object):
             else:
                 yield iProp.value
 
-    def dcamprop_getname(self, iProp):
+    def dcamprop_getname(self, iProp: DCAMPROPMODEVALUE):
         textbytes = 64
         text = ctypes.create_string_buffer(textbytes)
 
@@ -246,7 +259,15 @@ class HDCAM(object):
     # ===== quick API =====
 
     @property
-    def exposure_time(self):
+    def camera_id(self) -> str:
+        return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_CAMERAID)
+
+    @property
+    def model(self) -> str:
+        return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_MODEL)
+
+    @property
+    def exposure_time(self) -> float:
         return self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME)
 
     @exposure_time.setter
