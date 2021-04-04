@@ -49,6 +49,17 @@ def dcamapi_uninit():
     check_status(dcamapi.dcamapi_uninit())
 
 
+class _USE_DCAMAPI(object):
+    def __enter__(self):
+        dcamapi_init()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        dcamapi_uninit()
+
+
+use_dcamapi = _USE_DCAMAPI()
+
+
 class HDCAM(object):
     def __init__(self, index=0):
         param = DCAMDEV_OPEN()
