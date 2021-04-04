@@ -113,9 +113,9 @@ class HDCAM(object):
             raise Exception  # TODO custom exception
 
         return dict(
-            attribute=int(param.attribute),  # TODO use enum
-            iUnit=int(param.iUnit),  # TODO use enum
-            attribute2=int(param.attribute2),  # TODO use enum
+            attribute=param.attribute,  # TODO use enum
+            iUnit=DCAMPROPUNIT(param.iUnit),  # TODO use enum
+            attribute2=param.attribute2,  # TODO use enum
             valuemin=param.valuemin,
             valuemax=param.valuemax,
             valuestep=param.valuestep,
