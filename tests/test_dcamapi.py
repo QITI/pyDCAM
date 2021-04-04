@@ -17,6 +17,12 @@ def test_dcamdev_open_close(camindex):
     pyDCAM.dcamapi_uninit()
 
 
+def test_use_dcamapi(camindex):
+    with pyDCAM.use_dcamapi:
+        with pyDCAM.HDCAM(camindex) as hdcam:
+            pass
+
+
 def test_dcamdev_string(hdcam):
     # The Vendor is always Hmamatsu.
     assert hdcam.dcamdev_getstring(pyDCAM.DCAM_IDSTR.DCAM_IDSTR_VENDOR) == "Hamamatsu"
