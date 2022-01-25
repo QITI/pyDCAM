@@ -23,11 +23,19 @@ def failed(dcamerr):
     return True if dcamerr < 0 else False
 
 
+class DCAMError(Exception):
+    def __init__(self, error_code):
+        self.error_code = error_code
+
+    def __str__(self):
+        return "{0}".format(
+            DCAMERR(self.error_code).name
+        )
+
+
 def check_status(dcamerr):
     if not dcamerr == DCAMERR.DCAMERR_SUCCESS:
-        print(dcamerr)
-        message = "[{0}]".format(DCAMERR(dcamerr).name)
-        raise Exception(message)  # TODO custom exception
+        raise DCAMError(dcamerr)
 
 
 def dcamapi_init():
@@ -51,7 +59,7 @@ def dcamapi_uninit():
 
 class _USE_DCAMAPI(object):
     def __enter__(self):
-        dcamapi_init()
+        return dcamapi_init()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         dcamapi_uninit()
@@ -64,6 +72,7 @@ class HDCAM(object):
     def __init__(self, index=0):
         param = DCAMDEV_OPEN()
         param.index = index
+        param.size = ctypes.sizeof(param)
         param.size = ctypes.sizeof(param)
 
         check_status(dcamapi.dcamdev_open(ctypes.byref(param)))
@@ -109,12 +118,13 @@ class HDCAM(object):
 
         # TODO the return value is weird...
         err = dcamapi.dcamprop_getattr(self.hdcam, ctypes.byref(param))
+
         if failed(err):
             raise Exception  # TODO custom exception
 
         return dict(
             attribute=param.attribute,  # TODO use enum
-            iUnit=DCAMPROPUNIT(param.iUnit),  # TODO use enum
+            iUnit=DCAMPROPUNIT(param.iUnit),
             attribute2=param.attribute2,  # TODO use enum
             valuemin=param.valuemin,
             valuemax=param.valuemax,
@@ -276,6 +286,10 @@ class HDCAM(object):
     @property
     def model(self) -> str:
         return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_MODEL)
+
+    @property
+    def bus(self) -> str:
+        return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_BUS)
 
     @property
     def exposure_time(self) -> float:
