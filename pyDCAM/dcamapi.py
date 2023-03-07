@@ -3,6 +3,8 @@ import numpy as np
 from .dcamapi_enum import *
 from .dcamapi_struct import *
 from .dcamprop import *
+from typing import Tuple
+
 
 dcamapi = ctypes.windll.dcamapi
 
@@ -193,7 +195,7 @@ class HDCAM(object):
 
     def dcambuf_release(self, iKind):
         check_status(
-            dcamapi.dcambuf_release(iKind)
+            dcamapi.dcambuf_release(self.hdcam, iKind)
         )
 
     # TODO Add options to return timestamp and framestamp.
@@ -296,8 +298,31 @@ class HDCAM(object):
         return self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME)
 
     @exposure_time.setter
-    def exposure_time(self, value):
+    def exposure_time(self, value: float):
         self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME, value)
+
+    @property
+    def subarray_pos(self) -> Tuple[int, int]:
+        return (int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHPOS)),
+            int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVPOS)))
+
+
+    @subarray_pos.setter
+    def subarray_pos(self, value: Tuple[int, int]):
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHPOS, value[0])
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVPOS, value[1])
+
+    @property
+    def subarray_size(self) -> Tuple[int, int]:
+        return (int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHSIZE)),
+                int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVSIZE)))
+
+    @subarray_size.setter
+    def subarray_size(self, value: Tuple[int, int]):
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHSIZE, value[0])
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVSIZE, value[1])
+
+
 
 
 class HDCAMWAIT(object):
