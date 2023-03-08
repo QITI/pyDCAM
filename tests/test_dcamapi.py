@@ -128,3 +128,23 @@ def test_capture_with_software_trigger(hdcam):
     index, n_image = hdcam.dcamcap_transferinfo()
     assert index == 1
     assert n_image == 2
+
+
+def test_dcamprop_subarray(hdcam):
+    size = (64, 128)
+
+    hdcam.subarray_mode = True
+    hdcam.subarray_size = (64, 128) # HSize, VSize
+
+    hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME, 0.01)
+
+    hdcam.dcambuf_alloc(10)
+    hwait = hdcam.dcamwait_open()
+    hdcam.dcamcap_start()
+    hwait.dcamwait_start()
+
+    image1 = hdcam.dcambuf_lockframe()
+    assert image1.shape == size[::-1]
+
+    image2 = hdcam.dcambuf_copyframe()
+    assert image2.shape == size[::-1]

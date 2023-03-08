@@ -313,6 +313,21 @@ class HDCAM(object):
         self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVPOS, value[1])
 
     @property
+    def subarray_mode(self) -> bool:
+        mode = self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYMODE)
+        if mode == DCAMPROPMODEVALUE.DCAMPROP_MODE__ON:
+            return True
+        elif mode == DCAMPROPMODEVALUE.DCAMPROP_MODE__ON:
+            return False
+        else:
+            raise AssertionError
+
+    @subarray_mode.setter
+    def subarray_mode(self, value: bool):
+        mode = DCAMPROPMODEVALUE.DCAMPROP_MODE__ON if value else DCAMPROPMODEVALUE.DCAMPROP_MODE__OFF
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYMODE, mode)
+
+    @property
     def subarray_size(self) -> Tuple[int, int]:
         return (int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHSIZE)),
                 int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVSIZE)))
@@ -321,7 +336,6 @@ class HDCAM(object):
     def subarray_size(self, value: Tuple[int, int]):
         self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHSIZE, value[0])
         self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVSIZE, value[1])
-
 
 
 
