@@ -13,6 +13,7 @@ Welcome to pyDCAM's documentation!
    readme_link
    example
    api
+   property
 
 
 

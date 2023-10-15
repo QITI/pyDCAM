@@ -1,4 +1,6 @@
 # pyDCAM
+`pyDCAM` is the python bindings for Hamamatsu DCAM-API, allowing one to control Hamamatsu cameras in python.
+The documentation and the examples can be found at: https://pydcam.pages.dev/
 ## Dependencies
 ### DCAM-API
 `pyDCAM` relies on DCAM-API to interact with the camera. The installation file of DCAM-API can be downloaded from: https://dcam-api.com/downloads/

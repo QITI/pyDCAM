@@ -21,12 +21,17 @@ def main(i_device = 0):
 
             hdcam.dcamcap_start()
 
-            hwait.dcamwait_start(timeout=1000) # 1000 millisec timeout
+            # Wait for the frame to be ready, it has a timeout of 1000 millisec
+            hwait.dcamwait_start(timeout=1000)
+
+            # Copy the frame from the internal buffer to create a numpy array
             array = hdcam.dcambuf_copyframe()
 
+            # Stop the capture and release the buffer
             hdcam.dcamcap_stop()
             hdcam.dcambuf_release()
 
+            # Display the image
             plt.imshow(array)
             plt.show()
 

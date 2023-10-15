@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+
+[project]
+name = "pyDCAM"
+version = "0.0.1"
+description = ""
+authors = [{ name = "Chung-You (Gilbert) Shih", email = "c5shih@uwaterloo.ca" }]
+readme = "README.md"
+dependencies = [
+    "numpy > 1", 
+]
+
+[project.urls]
+Source = "https://github.com/QITI/Luxbeam"
+Homepage = "https://github.com/QITI/Luxbeam"

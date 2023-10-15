@@ -6,7 +6,7 @@ from .dcamprop import *
 from typing import Tuple
 import os
 
-if os.environ["BUILDING_DOCS"] != "1":
+if "BUILDING_DOCS" not in os.environ:
     dcamapi = ctypes.windll.dcamapi
 
 
@@ -43,6 +43,7 @@ def check_status(dcamerr):
 
 
 def dcamapi_init():
+    """Initialize the DCAM-API. It should be called before using any other DCAM-API functions."""
     # TODO Add init options
     # option = (ctypes.c_int32 * 2)()
     # option[0] = DCAMAPI_INITOPTION.DCAMAPI_INITOPTION_APIVER__LATEST
@@ -58,6 +59,7 @@ def dcamapi_init():
 
 
 def dcamapi_uninit():
+    """Uninitialize the DCAM-API."""
     check_status(dcamapi.dcamapi_uninit())
 
 
@@ -73,6 +75,22 @@ use_dcamapi = _USE_DCAMAPI()
 
 
 class HDCAM(object):
+    """Camera handle. 
+
+    It's recommended to use with statement to ensure the camera is closed properly.
+    
+    Parameters
+    ----------
+    index : int, optional
+        The index of the camera to open. Defaults to 0.
+
+    Examples
+    --------
+    >>> with HDCAM() as hdcam:
+    >>>     print(hdcam.model)
+    >>>     print(hdcam.camera_id)
+    
+    """
     def __init__(self, index=0):
         param = DCAMDEV_OPEN()
         param.index = index
@@ -90,12 +108,18 @@ class HDCAM(object):
         self.dcamdev_close()
 
     def dcamdev_close(self):
+        """Close the camera handle."""
         check_status(dcamapi.dcamdev_close(self.hdcam))
 
-    def dcamdev_getcapbility(self):
-        raise NotImplementedError
-
     def dcamdev_getstring(self, iString: DCAM_IDSTR) -> str:
+        """Get the string of the camera.
+        
+        Parameters
+        ----------
+        iString : DCAM_IDSTR
+            The string to get. 
+
+        """
         param = DCAMDEV_STRING()
         param.size = ctypes.sizeof(param)
         param.iString = iString
@@ -140,6 +164,18 @@ class HDCAM(object):
         )
 
     def dcamprop_getvalue(self, iProp: DCAMIDPROP) -> float:
+        """Get the value of the property.
+        
+        Parameters
+        ----------
+        iProp : DCAMIDPROP
+            The property ID.
+
+        Returns
+        -------
+        float
+            The value of the property.
+        """
         fValue = ctypes.c_double()
         check_status(
             dcamapi.dcamprop_getvalue(self.hdcam, iProp, ctypes.byref(fValue))
@@ -147,22 +183,71 @@ class HDCAM(object):
         return fValue.value
 
     def dcamprop_setvalue(self, iProp: DCAMIDPROP, fValue):
+        """Set the value of the property.
+        
+        Parameters
+        ----------
+        iProp : DCAMIDPROP
+            The property ID.
+
+        Raises
+        ------
+        DCAMError
+            If the device does not support a property. An error with code DCAMERR_NOTSUPPORT is raised.
+            If a property does not have auto-rounding and the fValue is not a valid value,
+            an error with code DCAMERR_INVALIDPARAM is raised.
+        """
         fValue = ctypes.c_double(float(fValue))
         check_status(
             dcamapi.dcamprop_setvalue(self.hdcam, iProp, fValue)
         )
 
     def dcamprop_setgetvalue(self, iProp: DCAMIDPROP, fValue: float) -> float:
+        """Set the value of the property and get the accurate value if successful. 
+
+        Parameters
+        ----------
+        iProp : DCAMIDPROP
+            The property ID.
+
+        Returns
+        -------
+        float
+            The value of the property.
+
+        Raises
+        ------
+        DCAMError
+            If the device does not support a property. An error with code DCAMERR_NOTSUPPORT is raised.
+            If a property does not have auto-rounding and the fValue is not a valid value,
+            an error with code DCAMERR_INVALIDPARAM is raised.
+        """
         fValue = ctypes.c_double(fValue)
         check_status(
             dcamapi.dcamprop_setgetvalue(self.hdcam, iProp, ctypes.byref(fValue), 0)
         )
         return fValue.value
 
-    def dcamprop_queryvalue(self):
-        raise NotImplementedError
+    def dcamprop_ids(self, option: DCAMPROPOPTION = DCAMPROPOPTION.DCAMPROP_OPTION_SUPPORT) -> DCAMIDPROP:
+        """Generator for enumerating the property IDs.
+        
+        Parameters
+        ----------
+        option: DCAMPROPOPTION, optional
+            Defaults to the properties supported by the device.
 
-    def dcamprop_ids(self, option=DCAM_DEFAULT_ARG):
+        Yields
+        ------
+        iProp: DCAMIDPROP
+            The property ID.
+
+        Examples
+        --------
+        >>> with HDCAM() as hdcam:
+        >>>     for iProp in hdcam.dcamprop_ids():
+        >>>         print(hdcam.dcamprop_getname(iProp))
+
+        """
         iProp = ctypes.c_int32(0)
 
         while True:
@@ -172,7 +257,19 @@ class HDCAM(object):
             else:
                 yield iProp.value
 
-    def dcamprop_getname(self, iProp: DCAMPROPMODEVALUE):
+    def dcamprop_getname(self, iProp: DCAMIDPROP) -> str:
+        """Get the name of the property.
+
+        Parameters
+        ----------
+        iProp : DCAMIDPROP
+            The property ID.
+
+        Returns
+        -------
+        str
+            The name of the property.
+        """
         textbytes = 64
         text = ctypes.create_string_buffer(textbytes)
 
@@ -182,27 +279,50 @@ class HDCAM(object):
 
         return text.value.decode("ascii")
 
-    def dcamprop_getvaluetext(self):
-        raise NotImplementedError
 
     def dcambuf_alloc(self, framecount=64):
+        """Allocates internal image buffers for image acquisition. 
+        
+        This function does not start the capture. To start capture, dcamcap_start() should be called.
+
+        When the internal buffers are no longer necessary, call dcambuf_release() to release them.
+        
+        Parameters
+        ----------
+        framecount : int, optional
+            The number of frames to allocate. Defaults to 64.
+        """
         check_status(
             dcamapi.dcambuf_alloc(self.hdcam, framecount)
         )
 
-    def dcambuf_attach(self):
-        param = DCAMBUF_ATTACH()
-        param.size = ctypes.sizeof(param)
-        raise NotImplementedError
 
     def dcambuf_release(self, iKind = 0):
+        """Release the internal image buffers allocated by dcambuf_alloc()."""
         check_status(
             dcamapi.dcambuf_release(self.hdcam, iKind)
         )
 
-    # TODO Add options to return timestamp and framestamp.
+    def dcambuf_lockframe(self, iFrame=-1) -> np.ndarray:
+        """ Returns a NumPy array pointing to the captured image buffer.
 
-    def dcambuf_lockframe(self, iFrame=-1):
+        If the host software dcambuf_copyframe needs to copy the image data into its own memory, 
+        use dcambuf_copyframe() instead of this function.
+
+        Parameters
+        ----------
+        iFrame : int, optional
+            The frame index. Defaults to -1, which retrieves the latest captured image.
+
+        Returns
+        -------
+        img: np.ndarray
+            The captured image buffer.
+
+        See Also
+        --------
+        HDCAM.dcambuf_copyframe : The function that copied the captured image buffer instead of pointing to it.
+        """
         frame = DCAMBUF_FRAME()
         frame.size = ctypes.sizeof(frame)
         frame.iFrame = iFrame  # This can be set to -1 to retrieve the latest captured image.
@@ -215,7 +335,20 @@ class HDCAM(object):
 
         return img
 
-    def dcambuf_copyframe(self, iFrame=-1):
+    def dcambuf_copyframe(self, iFrame=-1) -> np.ndarray:
+        """Returns a NumPy array containing the captured image copied from the buffer.
+        
+        Parameters
+        ----------
+        iFrame : int, optional
+            The frame index. Defaults to -1, which retrieves the latest captured image.
+
+        Returns
+        -------
+        img: np.ndarray
+            The captured image buffer.
+        
+        """
         frame = DCAMBUF_FRAME()
         frame.size = ctypes.sizeof(frame)
         frame.iFrame = iFrame  # This can be set to -1 to retrieve the latest captured image.
@@ -239,15 +372,36 @@ class HDCAM(object):
 
         return img
 
-    def dcambuf_copymetadata(self):
-        raise NotImplementedError
-
     def dcamcap_start(self, mode=DCAMCAP_START.DCAMCAP_START_SEQUENCE):
+        """start capturing images. 
+        
+        Before calling this function, a capturing buffer should be prepared.
+        
+        Parameters
+        ----------
+        mode : DCAMCAP_START, optional
+            The capture mode. Defaults to DCAMCAP_START_SEQUENCE.
+            With the DCAMCAP_START_SEQUENCE mode, capturing will be continuing until the dcamcap_stop() function is called. 
+            With the DCAMCAP_START_SNAP mode, 
+            capturing is terminated when the capturing buffer is filled or until the dcamcap_stop() function is called.
+        
+        See Also
+        --------
+        HDCAM.dcamcap_stop : Stop capturing images.
+        HDCAM.dcambuf_alloc : Allocate internal image buffers for image acquisition.
+        
+        """
         check_status(
             dcamapi.dcamcap_start(self.hdcam, mode)
         )
 
     def dcamcap_stop(self):
+        """Stop capturing images.
+
+        See Also
+        --------
+        HDCAM.dcamcap_start : Start capturing images.
+        """
         check_status(
             dcamapi.dcamcap_stop(self.hdcam)
         )
@@ -259,7 +413,17 @@ class HDCAM(object):
         )
         return DCAMCAP_STATUS(iStatus)
 
-    def dcamcap_transferinfo(self):
+    def dcamcap_transferinfo(self) -> Tuple[int, int]:
+        """Get the transfer information.
+        
+        Returns
+        -------
+        nNewestFrameIndex: int
+            The index of the newest frame of the transferred image.
+
+        nFrameCount: int
+            The number of iamges has been transferred.
+        """
         param = DCAMCAP_TRANSFERINFO()
         param.size = ctypes.sizeof(param)
         check_status(
@@ -268,11 +432,21 @@ class HDCAM(object):
         return param.nNewestFrameIndex, param.nFrameCount
 
     def dcamcap_firetrigger(self):
+        """Fire a software trigger.
+        
+        This is only effective if the software trigger mode.
+        """
         check_status(
             dcamapi.dcamcap_firetrigger(self.hdcam, ctypes.c_int32(0))
         )
 
-    def dcamwait_open(self):
+    def dcamwait_open(self) -> "HDCAMWAIT":
+        """Open a wait handle for the camera.
+        
+        See Also
+        --------
+        HDCAMWAIT.dcamwait_close : Close the wait handle.
+        """
         param = DCAMWAIT_OPEN()
         param.size = ctypes.sizeof(param)
         param.hdcam = self.hdcam
@@ -293,10 +467,12 @@ class HDCAM(object):
 
     @property
     def camera_id(self) -> str:
+        """The camera ID."""
         return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_CAMERAID)
 
     @property
     def model(self) -> str:
+        """The camera model."""
         return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_MODEL)
 
     @property
@@ -353,6 +529,15 @@ class HDCAM(object):
 
 
 class HDCAMWAIT(object):
+    """Wait handle for the camera. It is used to block the program and wait for a specific event.
+
+    Instead of instantiating this class directly, use HDCAM.dcamwait_open() to open a wait handle.
+
+    See Also
+    --------
+    HDCAM.dcamwait_open : Open a wait handle for the camera.
+
+    """
     def __init__(self, hwait, supportevent):
         self.h = hwait
         self.supportevent = supportevent
@@ -364,6 +549,17 @@ class HDCAMWAIT(object):
 
     def dcamwait_start(self, eventmask=DCAMWAIT_EVENT.DCAMWAIT_CAPEVENT_FRAMEREADY,
                        timeout=DCAMWAIT_TIMEOUT.DCAMWAIT_TIMEOUT_INFINITE):
+        """Start waiting for a specific event.
+        
+        Parameters
+        ----------
+        eventmask : DCAMWAIT_EVENT, optional
+            The event to wait for. Defaults to waiting for the next frame ready event.
+
+        timeout : int, optional
+            The timeout in milliseconds. Defaults to no timeout.
+
+        """
         param = DCAMWAIT_START()
         param.size = ctypes.sizeof(param)
         param.eventmask = eventmask
@@ -374,6 +570,7 @@ class HDCAMWAIT(object):
         return param.eventhappened
 
     def dcamwait_abort(self):
+        """Abort waiting for the event."""
         check_status(
             dcamapi.dcamwait_abort(self.h)
         )
