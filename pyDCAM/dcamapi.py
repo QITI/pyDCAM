@@ -4,9 +4,11 @@ from .dcamapi_enum import *
 from .dcamapi_struct import *
 from .dcamprop import *
 from typing import Tuple
+import os
 
+if os.environ["BUILDING_DOCS"] != "1":
+    dcamapi = ctypes.windll.dcamapi
 
-dcamapi = ctypes.windll.dcamapi
 
 DCAM_DEFAULT_ARG = 0
 
@@ -145,7 +147,7 @@ class HDCAM(object):
         return fValue.value
 
     def dcamprop_setvalue(self, iProp: DCAMIDPROP, fValue):
-        fValue = ctypes.c_double(fValue)
+        fValue = ctypes.c_double(float(fValue))
         check_status(
             dcamapi.dcamprop_setvalue(self.hdcam, iProp, fValue)
         )
@@ -193,7 +195,7 @@ class HDCAM(object):
         param.size = ctypes.sizeof(param)
         raise NotImplementedError
 
-    def dcambuf_release(self, iKind):
+    def dcambuf_release(self, iKind = 0):
         check_status(
             dcamapi.dcambuf_release(self.hdcam, iKind)
         )
@@ -226,7 +228,7 @@ class HDCAM(object):
         frame.left = 0
         frame.top = 0
 
-        pixel_type = int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_IMAGE_PIXELTYPE))
+        pixel_type = DCAM_PIXELTYPE(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_IMAGE_PIXELTYPE))
 
         img = np.empty(shape=(frame.height, frame.width), dtype=_pixel_type_to_numpy[pixel_type])
         frame.buf = img.ctypes.data
@@ -282,6 +284,14 @@ class HDCAM(object):
     # ===== quick API =====
 
     @property
+    def readout_speed(self) -> DCAMPROPMODEVALUE:
+        return DCAMPROPMODEVALUE(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_READOUTSPEED))
+    
+    @readout_speed.setter
+    def readout_speed(self, value: DCAMPROPMODEVALUE):
+        self.dcamprop_setvalue(DCAMIDPROP.DCAM_IDPROP_READOUTSPEED, float(value))
+
+    @property
     def camera_id(self) -> str:
         return self.dcamdev_getstring(DCAM_IDSTR.DCAM_IDSTR_CAMERAID)
 
@@ -303,6 +313,7 @@ class HDCAM(object):
 
     @property
     def subarray_pos(self) -> Tuple[int, int]:
+        """The subarray position in (x, y)"""
         return (int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHPOS)),
             int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVPOS)))
 
@@ -314,6 +325,7 @@ class HDCAM(object):
 
     @property
     def subarray_mode(self) -> bool:
+        """The subarray mode. True for on, False for off."""
         mode = self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYMODE)
         if mode == DCAMPROPMODEVALUE.DCAMPROP_MODE__ON:
             return True
@@ -329,6 +341,7 @@ class HDCAM(object):
 
     @property
     def subarray_size(self) -> Tuple[int, int]:
+        """The subarray size in (width, height)"""
         return (int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYHSIZE)),
                 int(self.dcamprop_getvalue(DCAMIDPROP.DCAM_IDPROP_SUBARRAYVSIZE)))
 

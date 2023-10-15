@@ -42,6 +42,11 @@ def test_dcamprop(hdcam):
         print(name, ":", value)
 
 
+def test_dcambuf_alloc_release(hdcam):
+    hdcam.dcambuf_alloc(10)
+    hdcam.dcambuf_release()
+
+
 def test_dcambuf_lockframe(hdcam):
     hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_READOUTSPEED,
                             pyDCAM.DCAMPROPMODEVALUE.DCAMPROP_READOUTSPEED__SLOWEST)
@@ -60,6 +65,9 @@ def test_dcambuf_lockframe(hdcam):
     array2 = hdcam.dcambuf_lockframe()
     assert np.all(array1 == array2)
     assert not np.all(array1 == array1_copy)
+
+    hdcam.dcamcap_stop()
+    hdcam.dcambuf_release()
 
 
 def test_dcambuf_copyframe(hdcam):
@@ -81,6 +89,9 @@ def test_dcambuf_copyframe(hdcam):
     assert not np.all(array1 == array2)
     assert np.all(array1 == array1_copy)
 
+    hdcam.dcamcap_stop()
+    hdcam.dcambuf_release()
+
 
 def test_dcambuf_lockframe_and_copyframe(hdcam):
     hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_READOUTSPEED,
@@ -93,41 +104,12 @@ def test_dcambuf_lockframe_and_copyframe(hdcam):
     hwait.dcamwait_start()
     array1_copyframe = hdcam.dcambuf_copyframe()
     array1_lockframe = hdcam.dcambuf_lockframe()
+
+    # Both copyframe and lockframe should return the same data
     assert np.all(array1_copyframe == array1_lockframe)
 
-
-def test_capture_with_software_trigger(hdcam):
-    hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_TRIGGERSOURCE,
-                            pyDCAM.DCAMPROPMODEVALUE.DCAMPROP_TRIGGERSOURCE__SOFTWARE)
-    hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME, 0.001)  # set exposure time to 1ms
-    hdcam.dcambuf_alloc(10)
-    hdcam.dcamcap_start()
-
-    TIMEOUT = 100  # 100ms. This should give the camera enough time to transfer the image
-
-    hwait = hdcam.dcamwait_open()
-
-    # There isn't any trigger, so no image should be transferred.
-    with pytest.raises(Exception) as excinfo:  # TODO catch proper error once we implement it
-        hwait.dcamwait_start(timeout=TIMEOUT)  # It should raise timeout error
-    print(excinfo)
-    index, n_image = hdcam.dcamcap_transferinfo()
-    assert index == -1
-    assert n_image == 0
-
-    # 1st trigger
-    hdcam.dcamcap_firetrigger()
-    hwait.dcamwait_start(timeout=TIMEOUT)
-    index, n_image = hdcam.dcamcap_transferinfo()
-    assert index == 0
-    assert n_image == 1
-
-    # 2nd trigger
-    hdcam.dcamcap_firetrigger()
-    hwait.dcamwait_start(timeout=TIMEOUT)
-    index, n_image = hdcam.dcamcap_transferinfo()
-    assert index == 1
-    assert n_image == 2
+    hdcam.dcamcap_stop()
+    hdcam.dcambuf_release()
 
 
 def test_dcamprop_subarray(hdcam):
@@ -148,3 +130,45 @@ def test_dcamprop_subarray(hdcam):
 
     image2 = hdcam.dcambuf_copyframe()
     assert image2.shape == size[::-1]
+
+    hdcam.dcamcap_stop()
+    hdcam.dcambuf_release()
+
+
+def test_capture_with_software_trigger(hdcam):
+    hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_TRIGGERSOURCE,
+                            pyDCAM.DCAMPROPMODEVALUE.DCAMPROP_TRIGGERSOURCE__SOFTWARE)
+    hdcam.dcamprop_setvalue(pyDCAM.DCAMIDPROP.DCAM_IDPROP_EXPOSURETIME, 0.001)  # set exposure time to 1ms
+    hdcam.dcambuf_alloc(10)
+    hdcam.dcamcap_start()
+
+    TIMEOUT = 100  # 100ms. This should give the camera enough time to transfer the image
+
+    hwait = hdcam.dcamwait_open()
+
+    # There isn't any trigger, so no image should be transferred.
+    with pytest.raises(Exception) as excinfo:
+        hwait.dcamwait_start(timeout=TIMEOUT)  # It should raise timeout error
+    print(excinfo)
+    index, n_image = hdcam.dcamcap_transferinfo()
+    assert index == -1
+    assert n_image == 0
+
+    # 1st trigger
+    hdcam.dcamcap_firetrigger()
+    hwait.dcamwait_start(timeout=TIMEOUT)
+    index, n_image = hdcam.dcamcap_transferinfo()
+    assert index == 0
+    assert n_image == 1
+
+    # 2nd trigger
+    hdcam.dcamcap_firetrigger()
+    hwait.dcamwait_start(timeout=TIMEOUT)
+    index, n_image = hdcam.dcamcap_transferinfo()
+    assert index == 1
+    assert n_image == 2
+
+    hdcam.dcamcap_stop()
+    hdcam.dcambuf_release()
+
+
