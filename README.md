@@ -5,13 +5,13 @@ The documentation and the examples can be found at: https://pydcam.pages.dev/
 ### DCAM-API
 `pyDCAM` relies on DCAM-API to interact with the camera. The installation file of DCAM-API can be downloaded from: https://dcam-api.com/downloads/
 ## Installation
-One can install `pyDCAM` package via setuptools:
+One can install `pyDCAM` package via the following command
 ```
-python setup.py install
+pip install .
 ```
-To install the package in [develop mode](https://stackoverflow.com/questions/19048732/python-setup-py-develop-vs-install) instead, use:
+One can also clone the repository to install it in the develop mode:
 ```
-python setup.py develop
+pip install -e .
 ```
 
 ## Test
