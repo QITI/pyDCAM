@@ -7,7 +7,7 @@ The documentation and the examples can be found at: https://pydcam.pages.dev/
 ## Installation
 One can install `pyDCAM` package via the following command
 ```
-pip install .
+pip install pyDCAM
 ```
 One can also clone the repository to install it in the develop mode:
 ```
