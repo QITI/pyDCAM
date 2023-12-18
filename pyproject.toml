@@ -12,5 +12,5 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/QITI/Luxbeam"
-Homepage = "https://github.com/QITI/Luxbeam"
+Source = "https://github.com/QITI/pyDCAM"
+Homepage = "https://github.com/QITI/pyDCAM"
